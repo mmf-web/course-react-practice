@@ -1,73 +1,44 @@
-import { BrowserRouter, Routes, Route, NavLink, Outlet } from 'react-router'
-import styles from './App.module.css'
-import Login from './pages/login'
-import Notes from './pages/notes'
-import { useState, createContext, useContext } from 'react'
-import WithAuth from './pages/with-auth'
+import { createContext, useState, useContext } from "react";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  redirect,
+} from "react-router";
+import Login from "./pages/Login";
+import Notes from "./pages/Notes";
+import Note from "./pages/Note";
+import Layout from "./pages/Layout";
+import WithAuth from "./pages/WithAuth";
 
-export const AuthContext = createContext(null)
-export const useAuthContext = () => useContext(AuthContext)
+export const UserContext = createContext(null);
 
-function App() {
-  const [user, setUser] = useState(() => {
-    const auth = localStorage.getItem('auth')
-    if (!auth) {
-      return null
-    }
-    try {
-      return JSON.parse(auth)
-    } catch {
-      return null
-    }
-  })
+let router = createBrowserRouter([
+  {
+    path: "/",
+    // ! Protected route !
+    element: (
+      <WithAuth>
+        <Layout />
+      </WithAuth>
+    ),
+    children: [
+      { path: "/notes", Component: Notes },
+      { path: "/notes/:id", Component: Note },
+    ],
+  },
+  {
+    path: "/login",
+    element: <Login />,
+    // Component: Login,
+  },
+]);
+
+export default function App() {
+  const [user, setUser] = useState(null);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser: (user) => {
-          localStorage.setItem('auth', JSON.stringify(user))
-          setUser(user)
-        },
-      }}
-    >
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              <WithAuth>
-                <Layout />
-              </WithAuth>
-            }
-          >
-            <Route index element={<div>Index</div>} />
-            <Route path="/notes" element={<Notes />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthContext.Provider>
-  )
+    <UserContext.Provider value={{ user, setUser }}>
+      <RouterProvider router={router} />
+    </UserContext.Provider>
+  );
 }
-
-function Layout() {
-  return (
-    <>
-      <header className={styles.header}>
-        <NavLink to="/" className={({ isActive }) => (isActive ? styles.navActive : '')}>
-          Home
-        </NavLink>
-        <NavLink to="/about" className={({ isActive }) => (isActive ? styles.navActive : '')}>
-          About
-        </NavLink>
-      </header>
-      <Outlet />
-      <footer>
-        <div>MMF @ BSU</div>
-      </footer>
-    </>
-  )
-}
-
-export default App
