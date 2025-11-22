@@ -1,9 +1,0 @@
-.header {
-  display: flex;
-  gap: 20px;
-  background-color: 'gray';
-}
-
-.navActive {
-  color: red;
-}
